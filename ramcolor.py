@@ -166,13 +166,15 @@ def color_fp (f):
     return ram
 
 def dump_colors (mem, fn=print):
-    msg = "{0:04X} - {1:04X}"
+    msg = " {0:04X} - {1:04X}"
     colors = list(mem.used_pens)
     colors.sort()
+    fn("Address ranges shown are inclusive.")
     for pen in colors:
-        fn("Song {0:02X}'s extents:".format(pen))
+        fn("{0:02X}:".format(pen), end=" ")
         for extent in mem.areas_colored_by(pen):
-            fn(msg.format(*extent))
+            fn(msg.format(extent[0], extent[1] - 1), end=";")
+        fn("")
 
 def main (args, prog='colors'):
     p = argparse.ArgumentParser()
