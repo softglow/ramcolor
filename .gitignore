@@ -1,3 +1,7 @@
+### Local ignores ###
+*.spc
+
+### GitHub Python ignore list follows ###
 *.py[cod]
 
 # C extensions
