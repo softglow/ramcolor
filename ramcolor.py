@@ -14,6 +14,14 @@ SPC_RAM_SIZE = 0x10000
 SONG_TBL = 0x581E
 END_SONG_SPACE = 0x6C00  # start of the instrument table
 
+TRACK_ARGS = [0 for i in range(0x100)]
+for i in (0xE0, 0xE1, 0xE5, 0xE7, 0xE9, 0xEA, 0xEC, 0xF0, 0xF4):
+    TRACK_ARGS[i] = 1
+for i in (0xE2, 0xE6, 0xE8, 0xEE):
+    TRACK_ARGS[i] = 2
+for i in (0xE3, 0xEB, 0xEF, 0xF1, 0xF2, 0xF5, 0xF7, 0xF8, 0xF9):
+    TRACK_ARGS[i] = 3
+
 
 # A 16-bit little-endian memory that also keeps track of the color of
 # accesses.  Set the active color via the 'pen' attribute, then use the getb()
@@ -116,7 +124,8 @@ def color_fp (f):
 
         # yes: let's read out the song
         ram.pen = song
-        patterns = []
+        patterns = set()
+        tracks = set()
         ptr = ram.getw(slot)
 
         # does this appear to be a valid song ptr?
@@ -161,7 +170,40 @@ def color_fp (f):
                 msg = "Song {0:02X} at {1:04X}: improbable ptr {2:04X}"
                 warn(msg.format(song, ptr, song_op))
 
-            patterns.append(song_op)
+            patterns.add(song_op)
+
+        for pattern in patterns:
+            for ptr in [ram.getw(pattern + 2*i) for i in range(8)]:
+                if ptr > 0:
+                    tracks.add(ptr)
+
+        while len(tracks):
+            base = tracks.pop()
+            ptr = base
+            while True:
+                if ptr < 0x0000 or ptr > 0xFFFF:
+                    print("ptr {0:X} has gone bad".format(ptr))
+                op = ram.getb(ptr)
+                ptr += 1
+
+                if op == 0x00:
+                    # end loop/track, no args: just stop
+                    break
+                elif op == 0xEF:
+                    # loop or jump: parse args to find ptr
+                    jmp = ram.getw(ptr)
+                    ptr += 2
+                    ct = ram.getb(ptr)
+                    ptr += 1
+                    if song not in ram[jmp]:
+                        tracks.add(jmp)
+                    if ct == 0x00:
+                        break
+                else:
+                    # command that doesn't affect flow: skip args
+                    for i in range(TRACK_ARGS[op]):
+                        ram.getb(ptr)
+                        ptr += 1
 
     return ram
 
