@@ -214,10 +214,12 @@ def dump_colors (mem, fn=print):
     fn("Address ranges shown are inclusive.")
     fn("Active song: {0:02X}".format(mem.peekb(0x0004)))
     for pen in colors:
+        total = 0
         fn("{0:02X}:".format(pen), end=" ")
         for extent in mem.areas_colored_by(pen):
+            total += extent[1] - extent[0]
             fn(msg.format(extent[0], extent[1] - 1), end=";")
-        fn("")
+        fn("\t{0} ({0:X}) bytes total".format(total))
 
 def main (args, prog='colors'):
     p = argparse.ArgumentParser()
