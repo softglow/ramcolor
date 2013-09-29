@@ -212,6 +212,7 @@ def dump_colors (mem, fn=print):
     colors = list(mem.used_pens)
     colors.sort()
     fn("Address ranges shown are inclusive.")
+    fn("Active song: {0:02X}".format(mem.peekb(0x0004)))
     for pen in colors:
         fn("{0:02X}:".format(pen), end=" ")
         for extent in mem.areas_colored_by(pen):
