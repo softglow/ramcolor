@@ -108,13 +108,10 @@ def color_fp (f):
     ram = f.read(SPC_START_OFFSET)
     ram = ColoredMem(f.read(SPC_RAM_SIZE))
 
-    # debugging: color only the current song
-    for song in [ram.peekb(0x0004)]:
+    for song in range(0x01, 0x30):
         # is it possible for this address to be a song start pointer?
         slot = SONG_TBL + 2*song
         if (len(ram[slot])):
-            print("song {0:02X} base addr {1:04X} is already song data"
-                    .format(song, slot))
             break
 
         # yes: let's read out the song
@@ -143,7 +140,6 @@ def color_fp (f):
             # FFF9..FFFF      => undefined
             # stop the loop if we find an explicit stop
             if song_op == 0 or song_op > 0xFFF8:
-                print("song_op {0:04X} => stop".format(song_op))
                 break
 
             if song_op <= 0xFF:
@@ -158,7 +154,6 @@ def color_fp (f):
                 ptr += 2
                 # have we found an infinitely looping tail segment?
                 if song_op == 0xFF:
-                    print("song_op {0:04X} => loops to {1:04X}".format(song_op, jmp))
                     break
                 continue
 
