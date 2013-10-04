@@ -232,6 +232,12 @@ def dump_colors (mem, fn=print):
             total += extent[1] - extent[0]
             fn(msg.format(extent[0], extent[1] - 1), end=";")
         fn("\t{0} ({0:X}) bytes total".format(total))
+    rainbows = mem.areas_multicolored()
+    if rainbows:
+        fn("Multicolored:", end="")
+        for extent in rainbows:
+            fn(" {0:04X}-{1:04X}".format(extent[0], extent[1] - 1), end=";")
+        fn("")
 
 def main (args, prog='colors'):
     p = argparse.ArgumentParser()
