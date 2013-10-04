@@ -14,6 +14,9 @@ SPC_RAM_SIZE = 0x10000
 SONG_TBL = 0x581E
 END_SONG_SPACE = 0x6C00  # start of the instrument table
 
+INST_TBL = 0x6C00
+SAMPLE_TBL = 0x6D00
+
 TRACK_ARGS = [0 for i in range(0x100)]
 for i in (0xE0, 0xE1, 0xE5, 0xE7, 0xE9, 0xEA, 0xEC, 0xF0, 0xF4):
     TRACK_ARGS[i] = 1
@@ -74,6 +77,10 @@ class ColoredMem (list):
         for offset in range(2):
             self[addr+offset].add(self.pen)
         return v
+
+    def mark (self, addr, n):
+        for i in range(n):
+            self[addr + i].add(self.pen)
 
     # return a list of intervals [start,end) where the color applies
     # counts only single-color cells when exclusive is True
@@ -189,6 +196,11 @@ def color_fp (f):
                 if op == 0x00:
                     # end loop/track, no args: just stop
                     break
+                elif op == 0xE0:
+                    # channel instrument selection
+                    instrument = ram.getb(ptr)
+                    ptr += 1
+                    ram.mark(INST_TBL + 6*instrument, 6)
                 elif op == 0xEF:
                     # loop or jump: parse args to find ptr
                     jmp = ram.getw(ptr)
